@@ -1,13 +1,13 @@
-package com.example;
+package me.lucaspickering;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class HerbFarmCalculatorPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(HerbFarmCalculatorPlugin.class);
 		RuneLite.main(args);
 	}
 }
