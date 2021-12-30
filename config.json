@@ -1,0 +1,21 @@
+{
+  "patches": [
+    "ardougne",
+    "catherby",
+    "falador",
+    "farming_guild",
+    "hosidius",
+    "port_phasmatys",
+    "troll_stronghold",
+    "weiss"
+  ],
+  "farming_level": 95,
+  "compost": "ultracompost",
+  "magic_secateurs": true,
+  "farming_cape": false,
+  "anima_plant": null,
+  "falador_diary": "hard",
+  "hosidius_fifty_favor": true,
+  "kandarin_diary": "hard",
+  "kourend_diary": "hard"
+}
