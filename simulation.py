@@ -55,9 +55,9 @@ Herb = NamedTuple(
     [
         ("name", str),
         ("level", int),
-        ("level_1_chance_to_save", float),
-        ("seed_xp", float),
-        ("harvest_xp", float),
+        ("level_1_chance_to_save", double),
+        ("seed_xp", double),
+        ("harvest_xp", double),
     ],
 )
 
