@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
@@ -20,15 +21,18 @@ import net.runelite.client.ui.PluginPanel;
 @Slf4j
 public class HerbFarmCalculatorPanel extends PluginPanel {
 
+  private final ClientThread clientThread;
   private final ItemManager itemManager;
   private final HerbFarmCalculator calculator;
   private final HerbFarmCalculatorConfig config;
   private JPanel resultsPanel;
 
   @Inject
-  public HerbFarmCalculatorPanel(ItemManager itemManager,
+  public HerbFarmCalculatorPanel(ClientThread clientThread,
+      ItemManager itemManager,
       HerbFarmCalculator calculator, HerbFarmCalculatorConfig config) {
     super();
+    this.clientThread = clientThread;
     this.itemManager = itemManager;
     this.calculator = calculator;
     this.config = config;
@@ -86,19 +90,21 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
    */
   private void refreshResults() {
     // TODO figure out how to listen for config changes and call this
-    List<HerbCalculatorResult> results = this.calculator.calculate();
+    clientThread.invokeLater(() -> {
+      List<HerbCalculatorResult> results = this.calculator.calculate();
 
-    // Clear previous results and add our new ones
-    if (this.resultsPanel != null) {
-      this.remove(this.resultsPanel);
-    }
-    this.resultsPanel = new JPanel();
-    this.resultsPanel.setLayout(new BoxLayout(this.resultsPanel, BoxLayout.Y_AXIS));
+      // Clear previous results and add our new ones
+      if (this.resultsPanel != null) {
+        this.remove(this.resultsPanel);
+      }
+      this.resultsPanel = new JPanel();
+      this.resultsPanel.setLayout(new BoxLayout(this.resultsPanel, BoxLayout.Y_AXIS));
 
-    for (HerbCalculatorResult result : results) {
-      UIHerbSlot slot = new UIHerbSlot(itemManager, result);
-      this.resultsPanel.add(slot);
-    }
-    this.add(this.resultsPanel);
+      for (HerbCalculatorResult result : results) {
+        UIHerbSlot slot = new UIHerbSlot(itemManager, result);
+        this.resultsPanel.add(slot);
+      }
+      this.add(this.resultsPanel);
+    });
   }
 }
