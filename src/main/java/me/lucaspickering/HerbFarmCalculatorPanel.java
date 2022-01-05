@@ -12,16 +12,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import lombok.extern.slf4j.Slf4j;
+
+import net.runelite.api.Client;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.PluginPanel;
 
-@Slf4j
 public class HerbFarmCalculatorPanel extends PluginPanel {
 
+  private final Client client;
   private final ClientThread clientThread;
   private final ItemManager itemManager;
   private final HerbFarmCalculator calculator;
@@ -29,10 +30,11 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
   private JPanel resultsPanel;
 
   @Inject
-  public HerbFarmCalculatorPanel(ClientThread clientThread,
+  public HerbFarmCalculatorPanel(Client client, ClientThread clientThread,
       ItemManager itemManager,
       HerbFarmCalculator calculator, HerbFarmCalculatorConfig config) {
     super();
+    this.client = client;
     this.clientThread = clientThread;
     this.itemManager = itemManager;
     this.calculator = calculator;
@@ -106,7 +108,7 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
         this.resultsPanel.setLayout(new BoxLayout(this.resultsPanel, BoxLayout.Y_AXIS));
 
         for (HerbCalculatorResult result : results) {
-          UIHerbSlot slot = new UIHerbSlot(itemManager, result);
+          UIHerbSlot slot = new UIHerbSlot(this.client, this.itemManager, result);
           this.resultsPanel.add(slot);
         }
         this.add(this.resultsPanel);

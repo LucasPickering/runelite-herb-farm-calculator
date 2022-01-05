@@ -21,14 +21,19 @@ public enum HerbPatch {
     /**
      * Is this patch disease-proof?
      *
+     * @param hosidiusFavor Player's favor with Hosidius (as a value [0,1000])
+     *                      50+% makes the Hosidius patch disease-free
      * @return True if this patch can't be diseased, false otherwise
      */
-    public boolean isDiseaseFree() {
+    public boolean isDiseaseFree(int hosidiusFavor) {
         switch (this) {
             case TROLL_STRONGHOLD:
             case WEISS:
                 return true;
-            // TODO Hosidius
+            case HOSIDIUS:
+                // Values are THOUSANDTHS, not hundreths
+                // https://oldschool.runescape.wiki/w/Kourend_Favour#Hosidius_favour_rewards
+                return hosidiusFavor >= 500;
             default:
                 return false;
         }

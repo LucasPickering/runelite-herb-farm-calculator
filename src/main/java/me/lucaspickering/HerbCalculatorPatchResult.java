@@ -3,12 +3,14 @@ package me.lucaspickering;
 import lombok.Getter;
 
 /**
- * A container class for calculator output. This encapsulates results for *a single herb* and *a
- * single patch*.
+ * A container class for calculator output. This encapsulates results for *a
+ * single herb* and *a single patch*.
  */
 public class HerbCalculatorPatchResult {
 
+  @Getter
   private final Herb herb;
+  @Getter
   private final HerbPatch patch;
   @Getter
   private final double expectedYield;

@@ -19,4 +19,15 @@ public enum AnimaPlant {
     public double getDiseaseChanceModifier() {
         return this == AnimaPlant.IASOR ? 0.2 : 1.0;
     }
+
+    /**
+     * Get the "chance to save" bonus provided by this plant. 5% for Attas, 0
+     * for everything else.
+     *
+     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @return Chance to save bonus, out of 1
+     */
+    public double getChanceToSaveBonus() {
+        return this == AnimaPlant.ATTAS ? 0.05 : 0.0;
+    }
 }
