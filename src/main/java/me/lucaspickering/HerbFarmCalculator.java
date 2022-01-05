@@ -56,7 +56,7 @@ public class HerbFarmCalculator {
         double baseXp = this.config.compost().getXp()
                 // "Plant" XP isn't granted until harvesting the final herb, which
                 // means plants that die don't grant *any* XP beyond the compost
-                // TODO check if compost XP is also only applied on final harvest
+                // (and yes I checked that compost XP is granted at the beginning)
                 + herb.getPlantXp() * survivalChance
                 + herb.getHarvestXp() * expectedYield;
         double expectedXp = baseXp * (1.0 + this.getXpBonus(patch));

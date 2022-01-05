@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
 // TODO consistent formatting/linting
+// TODO fix icon
 
 @PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel" }, // TODO tags
         enabledByDefault = false)
@@ -41,7 +42,7 @@ public class HerbFarmCalculatorPlugin extends Plugin {
         final HerbFarmCalculator calculator = new HerbFarmCalculator(this.client, this.config, itemManager);
         final HerbFarmCalculatorPanel uiPanel = new HerbFarmCalculatorPanel(this.client, this.clientThread,
                 this.itemManager,
-                calculator, this.config);
+                calculator);
 
         this.uiNavigationButton = NavigationButton.builder()
                 .tooltip("Herb Farming Calculator")

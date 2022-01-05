@@ -1,17 +1,22 @@
 package me.lucaspickering;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import java.awt.Color;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
@@ -54,25 +59,44 @@ public class UIHerbSlot extends JPanel {
     icon.setPreferredSize(ICON_SIZE);
     innerPanel.add(icon, BorderLayout.LINE_START);
 
-    // Create a sub-panel for all the info
-    JPanel infoPanel = new JPanel(new BorderLayout());
+    // Create a sub-sub-panel for all the text info
+    JPanel infoPanel = new JPanel(new GridLayout(2, 2));
+    infoPanel.setBorder(new EmptyBorder(0, 5, 0, 0));
     infoPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
     innerPanel.add(infoPanel, BorderLayout.CENTER);
 
     // Add the herb name
     JLabel nameLabel = new JLabel(result.getHerb().getName());
-    infoPanel.add(nameLabel, BorderLayout.PAGE_START);
+    nameLabel.setForeground(Color.WHITE);
+    infoPanel.add(nameLabel);
 
     // Add profit
     JLabel profitLabel = new JLabel(QuantityFormatter.formatNumber(result.getProfit()) + " gp");
-    infoPanel.add(profitLabel, BorderLayout.LINE_START);
+    profitLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+    profitLabel.setForeground(UIHerbSlot.getProfitColor(result.getProfit()));
+    infoPanel.add(profitLabel);
 
     // Add yield
-    JLabel yieldLabel = new JLabel(String.format("%.3f herbs", result.getExpectedYield()));
-    infoPanel.add(yieldLabel, BorderLayout.CENTER);
+    JLabel yieldLabel = new JLabel(String.format("%.1f herbs", result.getExpectedYield()));
+    yieldLabel.setFont(FontManager.getRunescapeSmallFont());
+    yieldLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+    infoPanel.add(yieldLabel);
 
     // Add XP
     JLabel xpLabel = new JLabel(String.format("%.1f XP", result.getExpectedXp()));
-    infoPanel.add(xpLabel, BorderLayout.LINE_END);
+    xpLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+    xpLabel.setFont(FontManager.getRunescapeSmallFont());
+    xpLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+    infoPanel.add(xpLabel);
+  }
+
+  private static Color getProfitColor(double profit) {
+    if (profit > 0.0) {
+      return ColorScheme.PROGRESS_COMPLETE_COLOR;
+    }
+    if (profit < 0.0) {
+      return ColorScheme.PROGRESS_ERROR_COLOR;
+    }
+    return Color.WHITE;
   }
 }
