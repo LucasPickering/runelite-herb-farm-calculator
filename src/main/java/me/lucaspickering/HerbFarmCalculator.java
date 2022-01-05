@@ -44,7 +44,7 @@ public class HerbFarmCalculator {
     private HerbCalculatorPatchResult calculatePatch(Herb herb, HerbPatch patch) {
         double survivalChance = this.calcSurvivalChance(patch);
         // Multiply by survival chance to account for dead plants
-        double expectedYield = patch.calcExpectedYield() * survivalChance;
+        double expectedYield = this.calcExpectedYield(herb, patch) * survivalChance;
 
         double expectedXp = this.config.compost().getXp()
                 // "Plant" XP isn't granted until harvesting the final herb, which
@@ -58,6 +58,49 @@ public class HerbFarmCalculator {
         double revenue = this.itemManager.getItemPrice(herb.getGrimyHerbItem()) * expectedYield;
 
         return new HerbCalculatorPatchResult(herb, patch, expectedYield, expectedXp, cost, revenue);
+    }
+
+    /**
+     * Calculate the expected number of herbs to be harvested from a patch
+     * **assuming it is already fully grown.** I.e. this does *not* take survival
+     * chance into account.
+     *
+     * @return Expected number of herbs yielded on average
+     */
+    private double calcExpectedYield(Herb herb, HerbPatch patch) {
+        // TODO figure out if this math is right, and either explain or fix it
+        return this.config.compost().getHarvestLives() / (1.0 - this.calcChanceToSave(herb, patch));
+    }
+
+    /**
+     * Calculate the chance to "save a life" when picking an herb. This is
+     * variable based on the herb, player's farming level, and applicable yield
+     * bonuses.
+     *
+     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @param patch The patch being harvested
+     * @return Odds of saving a live on each individual harvest, out of 1
+     */
+    private double calcChanceToSave(Herb herb, HerbPatch patch) {
+        // TODO add item bonuses
+        // TODO add diary bonuses
+        // TODO add attas bonus
+        int farmingLevel = 96; // TODO pull from game state
+
+        // Yes, these chances really are supposed to be this big, they're really
+        // out of 98, not 1
+        double chance1 = herb.getMinChanceToSave();
+        double chance99 = 80.0;
+
+        // This comes straight from the wiki, it's a lot easier to read in
+        // their formatting (link above). The formatted formula doesn't mention
+        // anything about the `floor`s though, but it's in the calculator source
+        // https://oldschool.runescape.wiki/w/Calculator:Template/Farming/Herbs2?action=edit
+        return Math.floor(
+                Math.floor(
+                        Math.floor((chance1 * (99.0 - farmingLevel) / 98.0) + (chance99 * (farmingLevel - 1.0) / 98.0))
+                                + 1.0))
+                / 256.0;
     }
 
     /**

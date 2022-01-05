@@ -18,6 +18,8 @@ import net.runelite.client.util.ImageUtil;
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
+// TODO consistent formatting/linting
+
 @Slf4j
 @PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel" }, // TODO
         enabledByDefault = false)

@@ -34,4 +34,26 @@ public enum Compost {
             return 0;
         }
     }
+
+    /**
+     * Get the number of "harvest lives" that a patch starts with when this
+     * compost is applied.
+     *
+     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @return Number of starting lives (default is 3)
+     */
+    public int getHarvestLives() {
+        switch (this) {
+            case NONE:
+                return 3;
+            case NORMAL:
+                return 4;
+            case SUPERCOMPOST:
+                return 5;
+            case ULTRACOMPOST:
+                return 6;
+            default:
+                return 3;
+        }
+    }
 }

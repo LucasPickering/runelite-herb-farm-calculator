@@ -4,7 +4,8 @@ import java.util.List;
 import lombok.Getter;
 
 /**
- * A container class for calculator output. This encapsulates results for *a single herb* but *all
+ * A container class for calculator output. This encapsulates results for *a
+ * single herb* but *all
  * patches*.
  */
 public class HerbCalculatorResult {

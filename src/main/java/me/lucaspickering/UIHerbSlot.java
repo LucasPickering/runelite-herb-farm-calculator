@@ -16,13 +16,12 @@ import net.runelite.client.util.QuantityFormatter;
  */
 public class UIHerbSlot extends JPanel {
 
-  //  Ripped from hiscores plugin
+  // Ripped from hiscores plugin
   private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(7, 7, 7, 7);
 
   private static final Border GREEN_BORDER = new CompoundBorder(
       BorderFactory.createMatteBorder(0, 4, 0, 0, (ColorScheme.PROGRESS_COMPLETE_COLOR).darker()),
-      EMPTY_BORDER
-  );
+      EMPTY_BORDER);
 
   private static final Border RED_BORDER = new CompoundBorder(
       BorderFactory.createMatteBorder(0, 4, 0, 0, (ColorScheme.PROGRESS_ERROR_COLOR).darker()),
@@ -70,7 +69,7 @@ public class UIHerbSlot extends JPanel {
     infoPanel.add(profitLabel, BorderLayout.LINE_START);
 
     // Add yield
-    JLabel yieldLabel = new JLabel(String.format("%.1f herbs", result.getExpectedYield()));
+    JLabel yieldLabel = new JLabel(String.format("%.3f herbs", result.getExpectedYield()));
     infoPanel.add(yieldLabel, BorderLayout.CENTER);
 
     // Add XP
