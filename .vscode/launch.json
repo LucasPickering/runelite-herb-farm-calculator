@@ -10,7 +10,8 @@
       "request": "launch",
       "mainClass": "me.lucaspickering.HerbFarmCalculatorPluginTest",
       "projectName": "herbFarmCalculator",
-      "vmArgs": "-ea"
+      "vmArgs": "-ea",
+      "args": ["--debug", "--developer-mode"]
     }
   ]
 }

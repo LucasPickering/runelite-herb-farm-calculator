@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
@@ -90,21 +91,26 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
    */
   private void refreshResults() {
     // TODO figure out how to listen for config changes and call this
+    // TODO do we want executor.execute instead?
+    // https://github.dev/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/skillcalculator/UIActionSlot.java
     clientThread.invokeLater(() -> {
       List<HerbCalculatorResult> results = this.calculator.calculate();
 
-      // Clear previous results and add our new ones
-      if (this.resultsPanel != null) {
-        this.remove(this.resultsPanel);
-      }
-      this.resultsPanel = new JPanel();
-      this.resultsPanel.setLayout(new BoxLayout(this.resultsPanel, BoxLayout.Y_AXIS));
+      // Move UI updating onto the AWT thread
+      SwingUtilities.invokeLater(() -> {
+        // Clear previous results and add our new ones
+        if (this.resultsPanel != null) {
+          this.remove(this.resultsPanel);
+        }
+        this.resultsPanel = new JPanel();
+        this.resultsPanel.setLayout(new BoxLayout(this.resultsPanel, BoxLayout.Y_AXIS));
 
-      for (HerbCalculatorResult result : results) {
-        UIHerbSlot slot = new UIHerbSlot(itemManager, result);
-        this.resultsPanel.add(slot);
-      }
-      this.add(this.resultsPanel);
+        for (HerbCalculatorResult result : results) {
+          UIHerbSlot slot = new UIHerbSlot(itemManager, result);
+          this.resultsPanel.add(slot);
+        }
+        this.add(this.resultsPanel);
+      });
     });
   }
 }

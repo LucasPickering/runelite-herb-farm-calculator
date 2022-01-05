@@ -43,7 +43,6 @@ public class HerbFarmCalculator {
      */
     private HerbCalculatorPatchResult calculatePatch(Herb herb, HerbPatch patch) {
         double survivalChance = this.calcSurvivalChance(patch);
-        log.debug("Survival chance", survivalChance);
         // Multiply by survival chance to account for dead plants
         double expectedYield = patch.calcExpectedYield() * survivalChance;
 
