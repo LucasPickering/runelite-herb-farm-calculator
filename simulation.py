@@ -10,7 +10,7 @@ import json
 import math
 import random
 from prettytable import PrettyTable
-from pprint import pprint
+from tqdm import tqdm
 from typing import NamedTuple
 
 PATCH_ARDOUGNE = "ardougne"
@@ -36,11 +36,6 @@ ANIMA_ATTAS = "attas"
 ANIMA_IASOR = "iasor"
 ANIMA_KRONOS = "kronos"
 
-# TODO implement resurrection - one thing to consider is that if someone
-# resurrects, they most likely won't come back to harvest that plant
-# individually, so we want to treat it as rolling that plant over to the next
-# run (i.e. eliminating the cost of the seed) rather than a normal harvest
-
 
 """
 An herb. `min_chance_to_save` is the "chance to save a life while harvesting"
@@ -48,7 +43,8 @@ for the herb at level 1. All herbs have a base chance to save of 80% at level
 99, and for each herb we linearly interpolate between the two based on the
 player's farming level.
 
-Values ripped from https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit
+Values ripped from:
+https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit
 """
 Herb = NamedTuple(
     "Herb",
@@ -104,19 +100,28 @@ def main():
         if herb.level <= farming_level
     ]
 
+    # Total number of trials to run, used to show progress to the user
+    pbar = tqdm(total=len(HERBS) * len(patch_names) * args.trials)
     # For each cell in the matrix, run n trials and store the aggregate result
     results = [
-        (herb, [patch.simulate(args.trials) for patch in patches])
+        (herb, [patch.simulate(args.trials, pbar) for patch in patches])
         for (herb, patches) in patches_matrix
     ]
+    pbar.close()
 
-    def print_table(name, accessor):
+    def print_table(name, field_name, formatter, average=False):
         table = PrettyTable()
-        table.field_names = ["Herb", *patch_names]
+        table.field_names = ["Herb", *patch_names, "Total"]
 
         for (herb, row_results) in results:
+            values = [getattr(cell, field_name) for cell in row_results]
+            total = sum(values) / len(values) if average else sum(values)
             table.add_row(
-                [herb.name, *(accessor(cell) for cell in row_results)]
+                [
+                    herb.name,
+                    *(formatter(val) for val in values),
+                    formatter(total),
+                ]
             )
 
         print(name)
@@ -124,10 +129,17 @@ def main():
         print("")
 
     print_table(
-        "Survival Rate", lambda cell: f"{cell.survival_rate * 100.0:.1f}%"
+        "Survival Rate",
+        "survival_rate",
+        lambda survival_rate: f"{survival_rate * 100.0:.1f}%",
+        average=True,
     )
-    print_table("Yield", lambda cell: f"{cell.herbs_harvested:.1f}")
-    print_table("XP", lambda cell: f"{cell.xp_gained:.1f}")
+    print_table(
+        "Yield",
+        "herbs_harvested",
+        lambda herbs_harvested: f"{herbs_harvested:.1f}",
+    )
+    print_table("XP", "xp_gained", lambda xp_gained: f"{xp_gained:.1f}")
 
 
 class HerbPatch:
@@ -285,11 +297,21 @@ class HerbPatch:
             return 0.10
         return 0.0
 
-    def simulate(self, trials=1):
+    def get_compost_xp(self):
+        if self.compost == COMPOST_NORMAL:
+            return 18.0
+        if self.compost == COMPOST_SUPER:
+            return 26.0
+        if self.compost == COMPOST_ULTRA:
+            return 36.0
+        return 0.0
+
+    def simulate(self, trials, pbar):
         result = AggregateResult()
         for _ in range(trials):
             state = HerbPatchState(
                 herb=self.herb,
+                compost=self.compost,
                 disease_chance_per_cycle=self.get_disease_chance_per_cycle(),
                 initial_lives=self.get_initial_lives(),
                 chance_to_save=self.get_chance_to_save(),
@@ -298,6 +320,8 @@ class HerbPatch:
             state.grow()
             state.harvest()
             result.add_trial(state)
+
+            pbar.update()  # Update progress bar
         return result
 
 
@@ -313,12 +337,14 @@ class HerbPatchState:
         disease_chance_per_cycle,
         initial_lives,
         chance_to_save,
+        compost_xp,
         xp_bonus,
     ):
         # Constants
         self.herb = herb
         self.disease_chance_per_cycle = disease_chance_per_cycle
         self.chance_to_save = chance_to_save
+        self.compost_xp = compost_xp
         self.xp_bonus = xp_bonus
 
         # Internal game state
@@ -371,6 +397,9 @@ class HerbPatchState:
             if not rand_bool(self.chance_to_save):
                 self.lives -= 1
 
+        # Compost XP is given when it's spread
+        self.xp_gained += self.compost_xp * xp_factor
+
         # Harvest until we can't
         while self.lives > 0:
             harvest_herb()
@@ -408,7 +437,8 @@ class AggregateResult:
             self._num_survived += 1
 
     def __str__(self):
-        return f"{self.survival_rate * 100.0}% surv. / {self.herbs_harvested} herbs / {self.xp_gained} XP"
+        return f"{self.survival_rate * 100.0}% surv. / \
+            {self.herbs_harvested} herbs / {self.xp_gained} XP"
 
 
 def rand_bool(true_weight=0.5):
