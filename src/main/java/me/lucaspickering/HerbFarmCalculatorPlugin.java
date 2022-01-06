@@ -18,8 +18,6 @@ import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
 // TODO consistent formatting/linting
-// TODO reload results on login
-// TODO move enums/utils into a subpackage
 
 @PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel" }, // TODO tags
         enabledByDefault = false)
@@ -62,6 +60,7 @@ public class HerbFarmCalculatorPlugin extends Plugin {
         if (gameStateChanged.getGameState() == GameState.LOGGED_IN) {
             // Refresh the panel when the player logs in, so we can grab all
             // their personal stats/buffs
+            // TODO this doesn't seem to actually work, fix it
             this.uiPanel.refreshPanel();
         }
     }

@@ -1,4 +1,4 @@
-package me.lucaspickering;
+package me.lucaspickering.utils;
 
 import java.util.stream.IntStream;
 

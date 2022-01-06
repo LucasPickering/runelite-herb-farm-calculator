@@ -2,6 +2,10 @@ package me.lucaspickering;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import me.lucaspickering.utils.AnimaPlant;
+import me.lucaspickering.utils.Compost;
+import me.lucaspickering.utils.HerbPatch;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;

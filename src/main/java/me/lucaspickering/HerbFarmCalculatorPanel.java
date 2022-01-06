@@ -10,6 +10,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+
+import me.lucaspickering.utils.HerbCalculatorResult;
+import me.lucaspickering.utils.HerbPatch;
+
 import java.awt.Color;
 import java.text.DecimalFormat;
 

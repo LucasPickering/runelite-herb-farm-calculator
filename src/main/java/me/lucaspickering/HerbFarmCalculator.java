@@ -1,6 +1,11 @@
 package me.lucaspickering;
 
 import lombok.extern.slf4j.Slf4j;
+import me.lucaspickering.utils.Herb;
+import me.lucaspickering.utils.HerbCalculatorPatchResult;
+import me.lucaspickering.utils.HerbCalculatorResult;
+import me.lucaspickering.utils.HerbPatch;
+import me.lucaspickering.utils.Utils;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
