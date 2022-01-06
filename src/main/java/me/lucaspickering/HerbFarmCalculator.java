@@ -26,6 +26,15 @@ public class HerbFarmCalculator {
     }
 
     /**
+     * Get the player's farming level
+     *
+     * @return Farming level, or 0 if not logged in
+     */
+    public int getFarmingLevel() {
+        return this.client.getRealSkillLevel(Skill.FARMING);
+    }
+
+    /**
      * Run the calculator for every herb and return all the results in a nice list.
      *
      * @return The results, in a nice list
@@ -73,7 +82,8 @@ public class HerbFarmCalculator {
         // Calculate revenue
         double revenue = this.itemManager.getItemPrice(herb.getGrimyHerbItem()) * expectedYield;
 
-        return new HerbCalculatorPatchResult(herb, patch, expectedYield, expectedXp, cost, revenue);
+        return new HerbCalculatorPatchResult(herb, patch, expectedYield,
+                expectedXp, cost, revenue);
     }
 
     /**
@@ -98,7 +108,7 @@ public class HerbFarmCalculator {
      * @return Odds of saving a live on each individual harvest, out of 1
      */
     private double calcChanceToSave(Herb herb, HerbPatch patch) {
-        int farmingLevel = this.client.getRealSkillLevel(Skill.FARMING);
+        int farmingLevel = this.getFarmingLevel();
         double itemBonus = this.getItemChanceToSaveBonus();
         double diaryBonus = this.getDiaryChanceToSaveBonus(patch);
         double attasBonus = this.config.animaPlant().getChanceToSaveBonus();

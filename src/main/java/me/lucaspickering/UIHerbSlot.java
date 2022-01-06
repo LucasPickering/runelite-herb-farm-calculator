@@ -13,8 +13,6 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
-import net.runelite.api.Client;
-import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -39,9 +37,7 @@ public class UIHerbSlot extends JPanel {
 
   private static DecimalFormat GP_FORMAT = new DecimalFormat("+#,###;-#,###");
 
-  public UIHerbSlot(Client client, ItemManager itemManager, HerbCalculatorResult result) {
-    boolean canPlant = client.getRealSkillLevel(Skill.FARMING) >= result.getHerb().getLevel();
-
+  public UIHerbSlot(int farmingLevel, ItemManager itemManager, HerbCalculatorResult result) {
     // An empty border to provide some padding
     this.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
     this.setLayout(new BorderLayout());
@@ -50,7 +46,7 @@ public class UIHerbSlot extends JPanel {
     JPanel innerPanel = new JPanel();
     innerPanel.setLayout(new BorderLayout());
     innerPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-    innerPanel.setBorder(canPlant ? GREEN_BORDER : RED_BORDER);
+    innerPanel.setBorder(farmingLevel >= result.getHerb().getLevel() ? GREEN_BORDER : RED_BORDER);
     this.add(innerPanel);
 
     // Add the icon
