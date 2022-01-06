@@ -36,6 +36,10 @@ ANIMA_ATTAS = "attas"
 ANIMA_IASOR = "iasor"
 ANIMA_KRONOS = "kronos"
 
+STATE_HEALTHY = "healthy"
+STATE_DISEASED = "diseased"
+STATE_DEAD = "dead"
+
 
 """
 An herb. `min_chance_to_save` is the "chance to save a life while harvesting"
@@ -148,9 +152,11 @@ class HerbPatch:
         herb,
         name,
         farming_level,
+        magic_level,
         compost,
         magic_secateurs,
         farming_cape,
+        resurrect_crops,
         anima_plant,
         falador_diary,
         kandarin_diary,
@@ -160,9 +166,11 @@ class HerbPatch:
         self.name = name
         self.herb = herb
         self.farming_level = farming_level
+        self.magic_level = magic_level
         self.compost = compost
         self.magic_secateurs = magic_secateurs
         self.farming_cape = farming_cape
+        self.resurrect_crops = resurrect_crops
         self.anima_plant = anima_plant
         self.falador_diary = falador_diary
         self.kandarin_diary = kandarin_diary
@@ -306,16 +314,30 @@ class HerbPatch:
             return 36.0
         return 0.0
 
+    def get_resurrect_chance(self):
+        """
+        Resurrection chance scales from 50% at 78 to 75% at 99
+        """
+        min_magic_level = 78
+        max_magic_level = 99
+        if not self.resurrect_crops or self.magic_level < min_magic_level:
+            return 0.0
+        normalized = (self.magic_level - min_magic_level) / (
+            max_magic_level - min_magic_level
+        )
+        return normalized * (0.75 - 0.50) + 0.50
+
     def simulate(self, trials, pbar):
         result = AggregateResult()
         for _ in range(trials):
             state = HerbPatchState(
                 herb=self.herb,
-                compost=self.compost,
                 disease_chance_per_cycle=self.get_disease_chance_per_cycle(),
+                resurrect_chance=self.get_resurrect_chance(),
                 initial_lives=self.get_initial_lives(),
                 chance_to_save=self.get_chance_to_save(),
                 xp_bonus=self.get_xp_bonus(),
+                compost_xp=self.get_compost_xp(),
             )
             state.grow()
             state.harvest()
@@ -327,14 +349,15 @@ class HerbPatch:
 
 class HerbPatchState:
 
-    # There are really n+1 growth stages, but we start at zero, so there are n
-    # transitions (fence post problem)
-    FINAL_GROWTH_STAGE = 4
+    # Growth stages vary 0-4, with 4 being fully grown
+    NUM_GROWTH_STAGES = 5
+    FINAL_GROWTH_STAGE = NUM_GROWTH_STAGES - 1
 
     def __init__(
         self,
         herb,
         disease_chance_per_cycle,
+        resurrect_chance,
         initial_lives,
         chance_to_save,
         compost_xp,
@@ -343,6 +366,7 @@ class HerbPatchState:
         # Constants
         self.herb = herb
         self.disease_chance_per_cycle = disease_chance_per_cycle
+        self.resurrect_chance = resurrect_chance
         self.chance_to_save = chance_to_save
         self.compost_xp = compost_xp
         self.xp_bonus = xp_bonus
@@ -350,8 +374,8 @@ class HerbPatchState:
         # Internal game state
         self.lives = initial_lives
         self.growth_stage = 0
-        self.is_diseased = False
-        self.is_dead = False
+        self.state = STATE_HEALTHY
+        self.has_resurrected = False
 
         # Player outcomes
         self.herbs_harvested = 0
@@ -362,28 +386,51 @@ class HerbPatchState:
         Progress herb growth until either death or adulthood
         """
 
-        def grow_stage():
+        # Grow until we hit a terminal stage
+        while (
+            self.growth_stage < self.FINAL_GROWTH_STAGE
+            and self.state != STATE_DEAD
+        ):
+            # It's not clear to me why the wiki uses n-1 as the exponent in
+            # the overall death formula, since disease can occur at any growth
+            # stage (i.e. all 4), and stops growth meaning death should also be
+            # able to occur at any growth stage. Needs more investigation.
+            # https://oldschool.runescape.wiki/w/Disease_(Farming)
+
+            # Plant is healthy and still growing, roll for disease
+            if self.state == STATE_HEALTHY and rand_bool(
+                self.disease_chance_per_cycle
+            ):
+                # When disease is applied, the plant stops growing
+                self.state = STATE_DISEASED
+
             # If we try to grow while already diseased, the plant dies *without*
             # progressing to the next state
-            if self.is_diseased:
-                self.is_dead = True
-                return
+            if self.state == STATE_DISEASED:
+                self.state = STATE_DEAD
 
-            # Roll to see if we get diseased
-            if rand_bool(self.disease_chance_per_cycle):
-                self.is_diseased = True
+            # If the plant is dead, attempt a resurrection
+            if self.state == STATE_DEAD:
+                # We can only attempt a resurrection once per crop
+                if not self.has_resurrected and rand_bool(
+                    self.resurrect_chance
+                ):
+                    self.state = STATE_HEALTHY
+                    self.has_resurrected = True
+                    # Back to the beginning of this stage, we'll need to pass
+                    # disease check again before growing
+                    continue
 
-            self.growth_stage += 1
-
-        # Grow until we hit a terminal stage
-        while self.growth_stage < self.FINAL_GROWTH_STAGE and not self.is_dead:
-            grow_stage()
+            # If plant is still healthy (either passed disease check or was
+            # resurrected), then growth progresses and we
+            if self.state == STATE_HEALTHY:
+                self.growth_stage += 1
 
     def harvest(self):
         """
         Harvest this patch until exhaustion. If not fully grown, does nothing
         """
-        if self.is_dead:
+        if self.state != STATE_HEALTHY:
             return
 
         if self.growth_stage < self.FINAL_GROWTH_STAGE:
@@ -415,6 +462,7 @@ class AggregateResult:
         self._herbs_harvested = 0
         self._xp_gained = 0
         self._num_survived = 0
+        self._num_resurrected = 0
         self._num_trials = 0
 
     @property
@@ -429,11 +477,15 @@ class AggregateResult:
     def survival_rate(self):
         return self._num_survived / self._num_trials
 
+    @property
+    def resurrection_rate(self):
+        return self._num_resurrected / self._num_trials
+
     def add_trial(self, state):
         self._num_trials += 1
         self._herbs_harvested += state.herbs_harvested
         self._xp_gained += state.xp_gained
-        if not state.is_dead:
+        if state.state == STATE_HEALTHY:
             self._num_survived += 1
 
     def __str__(self):

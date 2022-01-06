@@ -13,6 +13,7 @@ public class HerbPatchResult {
 
   private final Herb herb;
   private final HerbPatch patch;
+  private final double survivalChance;
   private final double expectedYield;
   private final double expectedXp;
   private final double cost;

@@ -19,6 +19,15 @@ public class HerbResult {
   }
 
   /**
+   * Get the *average* survival rate across all patches.
+   *
+   * @return Average of all patches' survival rate
+   */
+  public double getSurvivalChance() {
+    return patches.stream().mapToDouble(HerbPatchResult::getSurvivalChance).average().orElse(0.0);
+  }
+
+  /**
    * Get the expected yield across all patches in this result
    *
    * @return Sum of each patch's expected yield
@@ -43,5 +52,11 @@ public class HerbResult {
    */
   public double getProfit() {
     return patches.stream().mapToDouble(HerbPatchResult::getProfit).sum();
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%f survival / %f yield / %f XP", this.getSurvivalChance() * 100.0, this.getExpectedYield(),
+        this.getExpectedXp());
   }
 }

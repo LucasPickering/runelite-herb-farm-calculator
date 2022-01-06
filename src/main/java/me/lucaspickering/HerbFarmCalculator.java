@@ -64,7 +64,9 @@ public class HerbFarmCalculator {
         List<HerbPatchResult> patchResults = patches.stream()
                 .map(patch -> this.calculatePatch(herb, patch))
                 .collect(Collectors.toList());
-        return new HerbResult(herb, patchResults);
+        HerbResult rv = new HerbResult(herb, patchResults);
+        log.debug("{}", rv);
+        return rv;
     }
 
     /**
@@ -98,7 +100,8 @@ public class HerbFarmCalculator {
         // Calculate revenue
         double revenue = this.itemManager.getItemPrice(herb.getGrimyHerbItem()) * expectedYield;
 
-        return new HerbPatchResult(herb, patch.getPatch(), expectedYield, expectedXp, cost, revenue);
+        return new HerbPatchResult(herb, patch.getPatch(), survivalChance.getSurvivalChance(), expectedYield,
+                expectedXp, cost, revenue);
     }
 
     /**
@@ -186,10 +189,11 @@ public class HerbFarmCalculator {
         // Here, the chance of survival is just `s^3`.
         //
         // Now when we factor in resurrection, it gets more complicated (keep in
-        // mind that resurrection can only be attemped once per crop):
-        // Good: SSS, SSR, SRS, RSS
-        // Bad: SSF, SF, F, SRD, RSD, RD
-        // So the chance of survival is `s^3 + 3s^2r`, where the first term is
+        // mind that resurrection can only be attemped once per crop, and
+        // resurrection does *not* progress the growth):
+        // Good: SSS, SSRS, SRSS, RSSS
+        // Bad: SSF, SF, F, SRSD, RSSD, RSD, RD
+        // So the chance of survival is `s^3 + 3s^3r`, where the first term is
         // survival au naturale and the second is the chance of modern medicine
         // saving our herb and allowing it to live a fully and happy life.
         //
@@ -199,10 +203,11 @@ public class HerbFarmCalculator {
         // gives the same result as just harvesting it immediately, so not worth
         // trying to model that.
         //
-        // TODO This assumes that after resurrection, the plant proceeds to
-        // the subsequent stage, and doesn't repeat the stage that it died on.
-        // It's not 100% clear based on the wiki whether that actually happens,
-        // but it seems logical. Need to do some in-game testing on this.
+        // To be entirely honest, I'm not 100% sure about all this math because
+        // the Wiki isn't clear exactly how growth, disease, and resurrection
+        // work, so this is a best guess. This needs to be confirmed
+        // experimentally, but the numbers are definitely close enough to be
+        // useful for now.
 
         // https://oldschool.runescape.wiki/w/Disease_(Farming)#Reducing_disease_risk
         // Disease chance is always out of 128 and rounded *down* to the nearest
@@ -220,7 +225,7 @@ public class HerbFarmCalculator {
             // The chance that the patch (1) gets diseased, (2) is successfully
             // resurrected, and (3) successfully grows to adulthood. See the
             // essay above for why this makes sense.
-            double resurrectToAdulthoodChance = 3.0 * Math.pow(survivalChancePerCycle, 2.0) * diseaseChancePerCycle
+            double resurrectToAdulthoodChance = 3.0 * Math.pow(survivalChancePerCycle, 3.0) * diseaseChancePerCycle
                     * this.getResurrectionChance();
 
             // Odds of having to cast Resurrect is just the inverse of the odds

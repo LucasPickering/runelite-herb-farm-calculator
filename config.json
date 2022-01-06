@@ -11,9 +11,11 @@
     "weiss"
   ],
   "farming_level": 96,
+  "magic_level": 87,
   "compost": "ultracompost",
   "magic_secateurs": true,
   "farming_cape": false,
+  "resurrect_crops": true,
   "anima_plant": "iasor",
   "falador_diary": "hard",
   "hosidius_fifty_favor": true,
