@@ -18,8 +18,6 @@ import net.runelite.client.util.ImageUtil;
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
-// TODO consistent formatting/linting
-
 @PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel", "herb", "farming",
         "calculator" }, enabledByDefault = false)
 public class HerbFarmCalculatorPlugin extends Plugin {
