@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
 // TODO consistent formatting/linting
-// TODO fix icon
+// TODO reload results on login
 
 @PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel" }, // TODO tags
         enabledByDefault = false)

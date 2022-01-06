@@ -2,6 +2,7 @@ package me.lucaspickering;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.text.DecimalFormat;
 import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -17,7 +18,6 @@ import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.QuantityFormatter;
 
 /**
  * A visual representation for an herb's results.
@@ -36,6 +36,8 @@ public class UIHerbSlot extends JPanel {
       EMPTY_BORDER);
 
   private static final Dimension ICON_SIZE = new Dimension(32, 32);
+
+  private static DecimalFormat GP_FORMAT = new DecimalFormat("+#,###;-#,###");
 
   public UIHerbSlot(Client client, ItemManager itemManager, HerbCalculatorResult result) {
     boolean canPlant = client.getRealSkillLevel(Skill.FARMING) >= result.getHerb().getLevel();
@@ -71,7 +73,7 @@ public class UIHerbSlot extends JPanel {
     infoPanel.add(nameLabel);
 
     // Add profit
-    JLabel profitLabel = new JLabel(QuantityFormatter.formatNumber(result.getProfit()) + " gp");
+    JLabel profitLabel = new JLabel(GP_FORMAT.format(result.getProfit()) + " gp");
     profitLabel.setHorizontalAlignment(SwingConstants.RIGHT);
     profitLabel.setForeground(UIHerbSlot.getProfitColor(result.getProfit()));
     infoPanel.add(profitLabel);

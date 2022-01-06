@@ -12,6 +12,8 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.PluginPanel;
 
+// TODO add derived data to top section
+
 public class HerbFarmCalculatorPanel extends PluginPanel {
 
   private final Client client;
