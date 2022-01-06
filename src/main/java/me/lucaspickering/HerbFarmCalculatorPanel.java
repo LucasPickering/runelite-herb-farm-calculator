@@ -1,8 +1,6 @@
 package me.lucaspickering;
 
 import java.util.StringJoiner;
-
-import javax.inject.Inject;
 import javax.swing.BoxLayout;
 import java.awt.GridLayout;
 import javax.swing.JLabel;
@@ -10,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import lombok.extern.slf4j.Slf4j;
 import me.lucaspickering.utils.HerbResult;
 import me.lucaspickering.utils.HerbCalculatorResult;
 import me.lucaspickering.utils.HerbPatchBuffs;
@@ -25,6 +24,7 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
+@Slf4j
 public class HerbFarmCalculatorPanel extends PluginPanel {
 
   private static final DecimalFormat PCT_FORMAT = new DecimalFormat("+0%");
@@ -35,7 +35,6 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
   private final HerbFarmCalculator calculator;
   private JPanel uiPanel;
 
-  @Inject
   public HerbFarmCalculatorPanel(Client client, ClientThread clientThread,
       ItemManager itemManager,
       HerbFarmCalculatorConfig config,
@@ -80,6 +79,8 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
    * @param result
    */
   private void renderResult(HerbCalculatorResult result) {
+    log.debug("Rendering calculator result");
+
     // Clear previous info
     if (this.uiPanel != null) {
       this.remove(this.uiPanel);

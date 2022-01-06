@@ -18,8 +18,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// TODO figure out injection on this
-
 @Slf4j
 public class HerbFarmCalculator {
 
