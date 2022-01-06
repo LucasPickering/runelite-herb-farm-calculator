@@ -36,8 +36,7 @@ public interface HerbFarmCalculatorConfig extends Config {
     return false;
   }
 
-  // TODO use this value, and un-hide it
-  @ConfigItem(keyName = "useResurrectCrops", name = "Resurrect Crops", description = "Do you use the Resurrect Crops spell on dead herb patches?", hidden = true)
+  @ConfigItem(keyName = "useResurrectCrops", name = "Resurrect Crops", description = "Do you use the Resurrect Crops spell on dead herb patches?")
   default boolean useResurrectCrops() {
     return false;
   }

@@ -338,9 +338,7 @@ class HerbPatchState:
 
         def grow_stage():
             # If we try to grow while already diseased, the plant dies *without*
-            # progressing to the next state. This is important when using
-            # Resurrect Crops, because after resurrection it will be on the
-            # same growth stage as before
+            # progressing to the next state
             if self.is_diseased:
                 self.is_dead = True
                 return

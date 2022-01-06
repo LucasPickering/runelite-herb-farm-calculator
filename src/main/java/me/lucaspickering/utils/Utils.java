@@ -1,47 +1,30 @@
 package me.lucaspickering.utils;
 
-import java.util.stream.IntStream;
-
 public class Utils {
-    public static int factorial(int n) {
-        return Utils.factorial(1, n);
-    }
-
-    public static int factorial(int from, int to) {
-        return IntStream.range(from, to + 1).reduce((a, b) -> a * b).orElse(1);
-    }
-
-    public static int combination(int n, int k) {
-        // safety check to prevent overflow/underflow
-        if (n < 0 || k < 0 || k > n) {
-            throw new IllegalArgumentException(
-                    String.format("n and k must both be non-negative, and k <= n, got: n=%d, k=%d", n, k));
-        }
-
-        // This is a reduction of the formula `n! / ((n - k)! * k!)`. I've cut it
-        // down to:
-        // ((n - k + 1) * (n - k + 2) * ... * (n - 1) * n) / k!
-        // This reduces the max values we reach, so we stay in bounds for int
-        return Utils.factorial(n - k + 1, n) / Utils.factorial(k);
-    }
-
     /**
-     * Calculate the binomial distribution. This calculates the odds of getting
-     * **exactly** `k` successes in `n` trials, where each trial has `p`
-     * probability of success.
-     * https://en.wikipedia.org/wiki/Binomial_distribution
+     * Map a value from one known range to another. E.g. mapping 5 from [0,10]
+     * to [10,20] yields 15, and 60 from [50,100] to [0,10] yields 2.
      *
-     * @param p Probability of a single success, in range [0, 1]
-     * @param n Total number of trials
-     * @param k Exactly number of desired successes
-     * @return Odds of exactly k successes in n trials, in [0, 1]
+     * @param value  The value to map
+     * @param inMin  The minimum value of the input range
+     * @param inMax  The maximum value of the input range
+     * @param outMin The minimum value of the output range
+     * @param outMax The maximum value of the output range
+     * @return Mapped value
      */
-    public static double binomial(double p, int n, int k) {
-        // Validate inputs
-        if (p < 0.0 || p > 1.0) {
-            throw new IllegalArgumentException(String.format("Probability must be in [0, 1], got: %d", p));
+    public static double mapToRange(double value, double inMin, double inMax, double outMin, double outMax) {
+        if (inMin >= inMax) {
+            throw new IllegalArgumentException(
+                    String.format("Input min must be less than max, but got: [%f, %f]", inMin, inMax));
+        }
+        if (outMin >= outMax) {
+            throw new IllegalArgumentException(
+                    String.format("Output min must be less than max, but got: [%f, %f]", outMin, outMax));
         }
 
-        return Math.pow(p, k) * Math.pow(1.0 - p, n - k) * Utils.combination(n, k);
+        // Shift down to [0,inSpan], then scale down to [0,1]
+        double normalized = (value - inMin) / (inMax - inMin);
+        // Scale up to [0,outSpan], then shift up to [outMin,outMax]
+        return (normalized * (outMax - outMin)) + outMin;
     }
 }

@@ -5,13 +5,16 @@ import me.lucaspickering.utils.Herb;
 import me.lucaspickering.utils.HerbCalculatorResult;
 import me.lucaspickering.utils.HerbPatchResult;
 import me.lucaspickering.utils.HerbResult;
+import me.lucaspickering.utils.SurvivalChance;
+import me.lucaspickering.utils.Utils;
 import me.lucaspickering.utils.HerbPatch;
 import me.lucaspickering.utils.HerbPatchBuffs;
-import me.lucaspickering.utils.Utils;
 import net.runelite.api.Client;
+import net.runelite.api.ItemID;
 import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.skillcalculator.skills.MagicAction;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -68,15 +71,16 @@ public class HerbFarmCalculator {
      * Run the calculator for a single herb+patch combo
      */
     private HerbPatchResult calculatePatch(Herb herb, HerbPatchBuffs patch) {
-        double survivalChance = this.calcSurvivalChance(patch);
+        SurvivalChance survivalChance = this.calcSurvivalChance(patch);
+
         // Multiply by survival chance to account for dead plants
-        double expectedYield = this.calcExpectedYield(herb, patch) * survivalChance;
+        double expectedYield = this.calcExpectedYield(herb, patch) * survivalChance.getSurvivalChance();
 
         double baseXp = this.config.compost().getXp()
                 // "Plant" XP isn't granted until harvesting the final herb, which
                 // means plants that die don't grant *any* XP beyond the compost
                 // (and yes I checked that compost XP is granted at the beginning)
-                + herb.getPlantXp() * survivalChance
+                + herb.getPlantXp() * survivalChance.getSurvivalChance()
                 + herb.getHarvestXp() * expectedYield;
         double expectedXp = baseXp * (1.0 + patch.getXpBonus());
 
@@ -85,9 +89,11 @@ public class HerbFarmCalculator {
         double compostCost = this.config.compost().getPrice(this.itemManager)
                 * (this.config.useBottomlessBucket() ? 0.5 : 1.0);
         double seedCost = this.itemManager.getItemPrice(herb.getSeedItem());
-        // We intentionally ignore teleport costs, because it's extremely
-        // variable by player/patch, and almost always insignificant
-        double cost = compostCost + seedCost;
+        // The cost of runes for the Resurrect Crops *only*. We intentionally
+        // ignore teleport costs, because it's extremely variable by
+        // player/patch, and almost always insignificant.
+        double runeCost = this.getResurrectRuneCost() * survivalChance.getResurrectionCastChance();
+        double cost = compostCost + seedCost + runeCost;
 
         // Calculate revenue
         double revenue = this.itemManager.getItemPrice(herb.getGrimyHerbItem()) * expectedYield;
@@ -149,14 +155,54 @@ public class HerbFarmCalculator {
     }
 
     /**
-     * Calculate the chance of a patch growing to adulthood.
+     * Calculate the chance of a patch growing to adulthood. This takes into
+     * account resurrection (when enabled), and will also return the chance of
+     * the player having to cast the resurrection spell (whether or not it's
+     * successful).
      *
-     * @return The chance of survival, out of 1
+     * @return Container holding the chance of survival, as well as change
      */
-    private double calcSurvivalChance(HerbPatchBuffs patch) {
+    private SurvivalChance calcSurvivalChance(HerbPatchBuffs patch) {
         if (patch.isDiseaseFree()) {
-            return 1.0;
+            return new SurvivalChance(1.0, 0.0);
         }
+
+        // Here's some useful theorycrafting I did to understand this problem.
+        // Each patch has 3 meaningful growth stages (really it's 4, but it's
+        // impossible for the patch to die on the first cycle because it takes
+        // two cycles to go alive->diseased->dead), and 4 possible outcomes on
+        // each stage.
+        // S = survived
+        // D = died w/o resurrection attempted
+        // R = resurrect successfully
+        // F = resurrection attempted and failed
+        //
+        // We can assign a probability to each of these, using `s`, `d`, `r`,
+        // and `f`. We know `s == 1-d` and `r == 1-f` which is useful.
+        //
+        // First, the possible outcomes *without* resurrection:
+        // Good: SSS
+        // Bad: SSD, SD, D
+        // Here, the chance of survival is just `s^3`.
+        //
+        // Now when we factor in resurrection, it gets more complicated (keep in
+        // mind that resurrection can only be attemped once per crop):
+        // Good: SSS, SSR, SRS, RSS
+        // Bad: SSF, SF, F, SRD, RSD, RD
+        // So the chance of survival is `s^3 + 3s^2r`, where the first term is
+        // survival au naturale and the second is the chance of modern medicine
+        // saving our herb and allowing it to live a fully and happy life.
+        //
+        // Something worth noting is that if a player resurrects a plant, they
+        // likely won't be harvesting it on that same run, so *technically* we
+        // should roll it over into the subsequent run, but in reality that
+        // gives the same result as just harvesting it immediately, so not worth
+        // trying to model that.
+        //
+        // TODO This assumes that after resurrection, the plant proceeds to
+        // the subsequent stage, and doesn't repeat the stage that it died on.
+        // It's not 100% clear based on the wiki whether that actually happens,
+        // but it seems logical. Need to do some in-game testing on this.
 
         // https://oldschool.runescape.wiki/w/Disease_(Farming)#Reducing_disease_risk
         // Disease chance is always out of 128 and rounded *down* to the nearest
@@ -165,12 +211,60 @@ public class HerbFarmCalculator {
         double modifier = this.config.animaPlant().getDiseaseChanceModifier();
         double numerator = Math.max(Math.floor(baseChance * modifier), 1.0);
         double diseaseChancePerCycle = numerator / 128.0;
+        double survivalChancePerCycle = 1.0 - diseaseChancePerCycle;
 
-        // All herbs have 4 growth cycles, and we want to find the chance of
-        // exactly 0 disease instances in 3 (n-1) trials. We use n-1 because
-        // the last growth cycle can't have disease
-        // https://oldschool.runescape.wiki/w/Seeds#Herb_seeds
-        return Utils.binomial(diseaseChancePerCycle, 3, 0);
+        // The chance of the plant surviving to adulthood on its own
+        double naturalSurvivalChance = Math.pow(survivalChancePerCycle, 3.0);
+
+        if (this.config.useResurrectCrops()) {
+            // The chance that the patch (1) gets diseased, (2) is successfully
+            // resurrected, and (3) successfully grows to adulthood. See the
+            // essay above for why this makes sense.
+            double resurrectToAdulthoodChance = 3.0 * Math.pow(survivalChancePerCycle, 2.0) * diseaseChancePerCycle
+                    * this.getResurrectionChance();
+
+            // Odds of having to cast Resurrect is just the inverse of the odds
+            // surviving on its own
+            double resurrectCastChance = 1.0 - naturalSurvivalChance;
+            return new SurvivalChance(naturalSurvivalChance + resurrectToAdulthoodChance, resurrectCastChance);
+        } else {
+            return new SurvivalChance(naturalSurvivalChance, 0.0);
+        }
+    }
+
+    /**
+     * Get the cost of casting Resurrect Crops (assuming no staffs, since the
+     * benefit of those is negligible).
+     *
+     * @see https://oldschool.runescape.wiki/w/Resurrect_Crops
+     * @return Cost of all runes to cast Resurrect Crops
+     */
+    private int getResurrectRuneCost() {
+        // 8 souls, 12 nats, 8 bloods, 25 earths
+        return this.itemManager.getItemPrice(ItemID.SOUL_RUNE) * 8 +
+                this.itemManager.getItemPrice(ItemID.NATURE_RUNE) * 12 +
+                this.itemManager.getItemPrice(ItemID.BLOOD_RUNE) * 8 +
+                this.itemManager.getItemPrice(ItemID.EARTH_RUNE) * 25;
+    }
+
+    /**
+     * Calculate the chance of the Resurrect Crops spell succeeding, based on
+     * the player's magic level. Scales from 50% at level 78 to 75% at 99.
+     *
+     * @see https://oldschool.runescape.wiki/w/Resurrect_Crops
+     * @return Chance of resurrection succeeding, out of 1
+     */
+    private double getResurrectionChance() {
+        int magicLevel = this.client.getRealSkillLevel(Skill.MAGIC);
+        int minLevel = MagicAction.RESURRECT_CROPS.getLevel();
+
+        if (magicLevel < minLevel) {
+            // Get outta here kid
+            return 0.0;
+        }
+
+        // Map the value from the range [78,99] to [0.5,0.75] linearly
+        return Utils.mapToRange(magicLevel, minLevel, 99, 0.5, 0.75);
     }
 
     /**
