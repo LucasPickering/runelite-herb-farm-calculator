@@ -103,7 +103,11 @@ public class HerbFarmCalculator {
      * @return Expected number of herbs yielded on average
      */
     private double calcExpectedYield(Herb herb, HerbPatchBuffs patch) {
-        // TODO figure out if this math is right, and either explain or fix it
+        // We're looking for the expected value of "number of trials until k failures",
+        // where k is the number of harvest lives, and prob of failure (Pf) is
+        // 1-chance to save. The odds of a single failure is 1/Pf, so k
+        // failures is just k/Pf
+        // https://math.stackexchange.com/questions/3378034/expected-number-of-coin-flips-to-see-3-heads
         return this.config.compost().getHarvestLives() / (1.0 - this.calcChanceToSave(herb, patch));
     }
 
