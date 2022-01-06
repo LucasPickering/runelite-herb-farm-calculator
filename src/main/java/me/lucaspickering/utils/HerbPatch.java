@@ -2,6 +2,8 @@ package me.lucaspickering.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.runelite.api.Client;
+import net.runelite.api.Varbits;
 
 @AllArgsConstructor
 @Getter
@@ -21,11 +23,10 @@ public enum HerbPatch {
     /**
      * Is this patch disease-proof?
      *
-     * @param hosidiusFavor Player's favor with Hosidius (as a value [0,1000])
-     *                      50+% makes the Hosidius patch disease-free
+     * @param client RuneLite client, used to fetch dynamic data
      * @return True if this patch can't be diseased, false otherwise
      */
-    public boolean isDiseaseFree(int hosidiusFavor) {
+    public boolean isDiseaseFree(Client client) {
         switch (this) {
             case TROLL_STRONGHOLD:
             case WEISS:
@@ -33,7 +34,7 @@ public enum HerbPatch {
             case HOSIDIUS:
                 // Values are THOUSANDTHS, not hundreths
                 // https://oldschool.runescape.wiki/w/Kourend_Favour#Hosidius_favour_rewards
-                return hosidiusFavor >= 500;
+                return client.getVar(Varbits.KOUREND_FAVOR_HOSIDIUS) >= 500;
             default:
                 return false;
         }

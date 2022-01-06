@@ -13,7 +13,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
-import me.lucaspickering.utils.HerbCalculatorResult;
+import me.lucaspickering.utils.HerbResult;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -38,7 +38,7 @@ public class UIHerbSlot extends JPanel {
 
   private static DecimalFormat GP_FORMAT = new DecimalFormat("+#,###;-#,###");
 
-  public UIHerbSlot(int farmingLevel, ItemManager itemManager, HerbCalculatorResult result) {
+  public UIHerbSlot(int farmingLevel, ItemManager itemManager, HerbResult result) {
     // An empty border to provide some padding
     this.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
     this.setLayout(new BorderLayout());

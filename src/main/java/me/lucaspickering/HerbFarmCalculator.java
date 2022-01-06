@@ -2,9 +2,11 @@ package me.lucaspickering;
 
 import lombok.extern.slf4j.Slf4j;
 import me.lucaspickering.utils.Herb;
-import me.lucaspickering.utils.HerbCalculatorPatchResult;
 import me.lucaspickering.utils.HerbCalculatorResult;
+import me.lucaspickering.utils.HerbPatchResult;
+import me.lucaspickering.utils.HerbResult;
 import me.lucaspickering.utils.HerbPatch;
+import me.lucaspickering.utils.HerbPatchBuffs;
 import me.lucaspickering.utils.Utils;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
@@ -12,6 +14,7 @@ import net.runelite.api.Varbits;
 import net.runelite.client.game.ItemManager;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,38 +34,42 @@ public class HerbFarmCalculator {
     }
 
     /**
-     * Get the player's farming level
-     *
-     * @return Farming level, or 0 if not logged in
-     */
-    public int getFarmingLevel() {
-        return this.client.getRealSkillLevel(Skill.FARMING);
-    }
-
-    /**
      * Run the calculator for every herb and return all the results in a nice list.
      *
      * @return The results, in a nice list
      */
-    public List<HerbCalculatorResult> calculate() {
+    public HerbCalculatorResult calculate() {
         log.debug("Running herb calculator");
-        return Arrays.stream(Herb.values()).map(this::calculateHerb).collect(Collectors.toList());
+
+        // For each patch, figure out its patch-specific buffs. We do this up
+        // front so we can render the buffs to the user clearly, separate from
+        // the herb outputs
+        List<HerbPatchBuffs> patches = this.config.patches().stream()
+                .map(patch -> new HerbPatchBuffs(patch, patch.isDiseaseFree(this.client),
+                        this.getDiaryChanceToSaveBonus(patch), this.getXpBonus(patch)))
+                // Sort alphabetically, for easier reading on the UI
+                .sorted(Comparator.comparing(patch -> patch.getPatch().getName()))
+                .collect(Collectors.toList());
+
+        List<HerbResult> herbs = Arrays.stream(Herb.values()).map(herb -> this.calculateHerb(herb, patches))
+                .collect(Collectors.toList());
+        return new HerbCalculatorResult(this.getFarmingLevel(), patches, herbs);
     }
 
     /**
      * Run the calculator for a single herb
      */
-    private HerbCalculatorResult calculateHerb(Herb herb) {
-        List<HerbCalculatorPatchResult> patches = this.config.patches().stream()
+    private HerbResult calculateHerb(Herb herb, List<HerbPatchBuffs> patches) {
+        List<HerbPatchResult> patchResults = patches.stream()
                 .map(patch -> this.calculatePatch(herb, patch))
                 .collect(Collectors.toList());
-        return new HerbCalculatorResult(herb, patches);
+        return new HerbResult(herb, patchResults);
     }
 
     /**
      * Run the calculator for a single herb+patch combo
      */
-    private HerbCalculatorPatchResult calculatePatch(Herb herb, HerbPatch patch) {
+    private HerbPatchResult calculatePatch(Herb herb, HerbPatchBuffs patch) {
         double survivalChance = this.calcSurvivalChance(patch);
         // Multiply by survival chance to account for dead plants
         double expectedYield = this.calcExpectedYield(herb, patch) * survivalChance;
@@ -73,7 +80,7 @@ public class HerbFarmCalculator {
                 // (and yes I checked that compost XP is granted at the beginning)
                 + herb.getPlantXp() * survivalChance
                 + herb.getHarvestXp() * expectedYield;
-        double expectedXp = baseXp * (1.0 + this.getXpBonus(patch));
+        double expectedXp = baseXp * (1.0 + patch.getXpBonus());
 
         // Calculate cost
         // Bottomless bucket doubles compost, so it halves the cost
@@ -87,8 +94,7 @@ public class HerbFarmCalculator {
         // Calculate revenue
         double revenue = this.itemManager.getItemPrice(herb.getGrimyHerbItem()) * expectedYield;
 
-        return new HerbCalculatorPatchResult(herb, patch, expectedYield,
-                expectedXp, cost, revenue);
+        return new HerbPatchResult(herb, patch.getPatch(), expectedYield, expectedXp, cost, revenue);
     }
 
     /**
@@ -98,7 +104,7 @@ public class HerbFarmCalculator {
      *
      * @return Expected number of herbs yielded on average
      */
-    private double calcExpectedYield(Herb herb, HerbPatch patch) {
+    private double calcExpectedYield(Herb herb, HerbPatchBuffs patch) {
         // TODO figure out if this math is right, and either explain or fix it
         return this.config.compost().getHarvestLives() / (1.0 - this.calcChanceToSave(herb, patch));
     }
@@ -112,10 +118,9 @@ public class HerbFarmCalculator {
      * @param patch The patch being harvested
      * @return Odds of saving a live on each individual harvest, out of 1
      */
-    private double calcChanceToSave(Herb herb, HerbPatch patch) {
+    private double calcChanceToSave(Herb herb, HerbPatchBuffs patch) {
         int farmingLevel = this.getFarmingLevel();
         double itemBonus = this.getItemChanceToSaveBonus();
-        double diaryBonus = this.getDiaryChanceToSaveBonus(patch);
         double attasBonus = this.config.animaPlant().getChanceToSaveBonus();
 
         // Yes, these chances really are supposed to be this big, they're really
@@ -132,7 +137,7 @@ public class HerbFarmCalculator {
                         Math.floor((chance1 * (99.0 - farmingLevel) / 98.0) + (chance99 * (farmingLevel - 1.0) / 98.0))
                                 * (1.0 + itemBonus)
                                 // https://twitter.com/JagexAsh/status/956892754096869376
-                                * (1.0 + diaryBonus)
+                                * (1.0 + patch.getYieldBonus())
                                 // https://twitter.com/JagexAsh/status/1245644766328446976
                                 // Note: This conflicts with how the wiki calculator does it,
                                 // but I'm going off of Ash's tweets instead
@@ -146,8 +151,8 @@ public class HerbFarmCalculator {
      *
      * @return The chance of survival, out of 1
      */
-    private double calcSurvivalChance(HerbPatch patch) {
-        if (patch.isDiseaseFree(this.client.getVar(Varbits.KOUREND_FAVOR_HOSIDIUS))) {
+    private double calcSurvivalChance(HerbPatchBuffs patch) {
+        if (patch.isDiseaseFree()) {
             return 1.0;
         }
 
@@ -164,6 +169,15 @@ public class HerbFarmCalculator {
         // the last growth cycle can't have disease
         // https://oldschool.runescape.wiki/w/Seeds#Herb_seeds
         return Utils.binomial(diseaseChancePerCycle, 3, 0);
+    }
+
+    /**
+     * Get the player's farming level
+     *
+     * @return Farming level, or 0 if not logged in
+     */
+    private int getFarmingLevel() {
+        return this.client.getRealSkillLevel(Skill.FARMING);
     }
 
     /**

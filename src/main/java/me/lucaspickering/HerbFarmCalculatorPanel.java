@@ -1,6 +1,5 @@
 package me.lucaspickering;
 
-import java.util.List;
 import java.util.StringJoiner;
 
 import javax.inject.Inject;
@@ -11,8 +10,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import me.lucaspickering.utils.HerbResult;
 import me.lucaspickering.utils.HerbCalculatorResult;
-import me.lucaspickering.utils.HerbPatch;
+import me.lucaspickering.utils.HerbPatchBuffs;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
@@ -32,7 +32,6 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
   private final Client client;
   private final ClientThread clientThread;
   private final ItemManager itemManager;
-  private final HerbFarmCalculatorConfig config;
   private final HerbFarmCalculator calculator;
   private JPanel uiPanel;
 
@@ -45,7 +44,6 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
     this.client = client;
     this.clientThread = clientThread;
     this.itemManager = itemManager;
-    this.config = config;
     this.calculator = calculator;
 
     setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -66,11 +64,11 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
   public void refreshPanel() {
     // Defer running the calculator onto the client thread
     clientThread.invokeLater(() -> {
-      List<HerbCalculatorResult> results = this.calculator.calculate();
+      HerbCalculatorResult result = this.calculator.calculate();
 
       // Move UI updating onto the AWT thread
       SwingUtilities.invokeLater(() -> {
-        this.renderResults(results);
+        this.renderResult(result);
       });
     });
   }
@@ -79,9 +77,9 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
    * Draw new results into the UI. This should be called *after* running the
    * calculator, in the AWT thread.
    *
-   * @param results
+   * @param result
    */
-  private void renderResults(List<HerbCalculatorResult> results) {
+  private void renderResult(HerbCalculatorResult result) {
     // Clear previous info
     if (this.uiPanel != null) {
       this.remove(this.uiPanel);
@@ -106,23 +104,23 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
     }
 
     // Farming level
-    JLabel farmingLevelLabel = new JLabel(String.format("Farming level: %d", calculator.getFarmingLevel()));
+    JLabel farmingLevelLabel = new JLabel(String.format("Farming level: %d", result.getFarmingLevel()));
     farmingLevelLabel.setForeground(Color.WHITE);
     infoPanel.add(farmingLevelLabel);
 
     // Add a label for each patch in use
-    for (HerbPatch patch : this.config.patches()) {
+    for (HerbPatchBuffs patch : result.getPatches()) {
       // Generate a label for the patch that includes name, yield buff, xp buff
-      // TODO load these from the calculator
-      double yieldBonus = 0.10;
-      double xpBonus = 0.10;
-      StringBuilder text = new StringBuilder(patch.getName());
+      StringBuilder text = new StringBuilder(patch.getPatch().getName());
       StringJoiner buffLabels = new StringJoiner(", ");
-      if (yieldBonus != 0.0) {
-        buffLabels.add(PCT_FORMAT.format(yieldBonus) + " yield");
+      if (patch.isDiseaseFree()) {
+        buffLabels.add("disease-free");
       }
-      if (xpBonus != 0.0) {
-        buffLabels.add(PCT_FORMAT.format(xpBonus) + " XP");
+      if (patch.getYieldBonus() != 0.0) {
+        buffLabels.add(PCT_FORMAT.format(patch.getYieldBonus()) + " yield");
+      }
+      if (patch.getXpBonus() != 0.0) {
+        buffLabels.add(PCT_FORMAT.format(patch.getXpBonus()) + " XP");
       }
 
       if (buffLabels.length() > 0) {
@@ -143,8 +141,8 @@ public class HerbFarmCalculatorPanel extends PluginPanel {
     this.uiPanel.add(resultsPanel);
 
     // Add each patch
-    for (HerbCalculatorResult result : results) {
-      UIHerbSlot slot = new UIHerbSlot(this.calculator.getFarmingLevel(), this.itemManager, result);
+    for (HerbResult herbResult : result.getHerbs()) {
+      UIHerbSlot slot = new UIHerbSlot(result.getFarmingLevel(), this.itemManager, herbResult);
       resultsPanel.add(slot);
     }
 
