@@ -18,8 +18,8 @@ import net.runelite.client.util.ImageUtil;
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 
-@PluginDescriptor(name = "Herb Farming Calculator", tags = { "panel", "herb", "farming",
-        "calculator" }, enabledByDefault = false)
+@PluginDescriptor(name = "Herb Farming Calculator", tags = {"panel", "herb", "farming",
+        "calculator"})
 public class HerbFarmCalculatorPlugin extends Plugin {
 
     @Inject
@@ -53,6 +53,11 @@ public class HerbFarmCalculatorPlugin extends Plugin {
                 .build();
 
         clientToolbar.addNavigation(uiNavigationButton);
+    }
+
+    @Override
+    protected void shutDown() throws Exception {
+        this.clientToolbar.removeNavigation(this.uiNavigationButton);
     }
 
     @Subscribe
