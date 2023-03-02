@@ -24,7 +24,7 @@ public enum AnimaPlant {
      * Get the "chance to save" bonus provided by this plant. 5% for Attas, 0
      * for everything else.
      *
-     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @see <a href="https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield">Wiki Reference</a>
      * @return Chance to save bonus, out of 1
      */
     public double getChanceToSaveBonus() {

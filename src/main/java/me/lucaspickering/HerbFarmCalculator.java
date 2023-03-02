@@ -125,7 +125,7 @@ public class HerbFarmCalculator {
      * variable based on the herb, player's farming level, and applicable yield
      * bonuses.
      *
-     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @see <a href="https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield">Wiki Reference</a>
      * @param patch The patch being harvested
      * @return Odds of saving a live on each individual harvest, out of 1
      */
@@ -241,7 +241,7 @@ public class HerbFarmCalculator {
      * Get the cost of casting Resurrect Crops (assuming no staffs, since the
      * benefit of those is negligible).
      *
-     * @see https://oldschool.runescape.wiki/w/Resurrect_Crops
+     * @see <a href="https://oldschool.runescape.wiki/w/Resurrect_Crops">Wiki Reference</a>
      * @return Cost of all runes to cast Resurrect Crops
      */
     private int getResurrectRuneCost() {
@@ -256,7 +256,7 @@ public class HerbFarmCalculator {
      * Calculate the chance of the Resurrect Crops spell succeeding, based on
      * the player's magic level. Scales from 50% at level 78 to 75% at 99.
      *
-     * @see https://oldschool.runescape.wiki/w/Resurrect_Crops
+     * @see <a href="https://oldschool.runescape.wiki/w/Resurrect_Crops">Wiki Reference</a>
      * @return Chance of resurrection succeeding, out of 1
      */
     private double getResurrectionChance() {
@@ -284,7 +284,7 @@ public class HerbFarmCalculator {
     /**
      * Get the "chance to save" bonus due to equipped items.
      *
-     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @see <a href="https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield">Wiki Reference</a>
      * @return Chance to save bonus, out of 1
      */
     private double getItemChanceToSaveBonus() {
@@ -304,7 +304,7 @@ public class HerbFarmCalculator {
      * Get the "chance to save" bonus due to achievement diary bonuses. These
      * bonuses are patch-specific.
      *
-     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @see <a href="https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield">Wiki Reference</a>
      * @return Chance to save bonus, out of 1
      */
     private double getDiaryChanceToSaveBonus(HerbPatch patch) {
@@ -312,13 +312,13 @@ public class HerbFarmCalculator {
             case CATHERBY:
                 // +5% from medium, +10% from hard, +15% from elite
                 // https://oldschool.runescape.wiki/w/Kandarin_Diary
-                if (this.client.getVar(Varbits.DIARY_KANDARIN_ELITE) > 0) {
+                if (this.client.getVarbitValue(Varbits.DIARY_KANDARIN_ELITE) > 0) {
                     return 0.15;
                 }
-                if (this.client.getVar(Varbits.DIARY_KANDARIN_HARD) > 0) {
+                if (this.client.getVarbitValue(Varbits.DIARY_KANDARIN_HARD) > 0) {
                     return 0.10;
                 }
-                if (this.client.getVar(Varbits.DIARY_KANDARIN_MEDIUM) > 0) {
+                if (this.client.getVarbitValue(Varbits.DIARY_KANDARIN_MEDIUM) > 0) {
                     return 0.05;
                 }
                 return 0.0;
@@ -326,7 +326,7 @@ public class HerbFarmCalculator {
             // https://oldschool.runescape.wiki/w/Kourend_%26_Kebos_Diary#Rewards_3
             case FARMING_GUILD:
             case HOSIDIUS:
-                if (this.client.getVar(Varbits.DIARY_KOUREND_HARD) > 0) {
+                if (this.client.getVarbitValue(Varbits.DIARY_KOUREND_HARD) > 0) {
                     return 0.05;
                 }
                 return 0.0;
@@ -347,7 +347,7 @@ public class HerbFarmCalculator {
         switch (patch) {
             case FALADOR:
                 // +10% from medium
-                if (this.client.getVar(Varbits.DIARY_FALADOR_MEDIUM) > 0) {
+                if (this.client.getVarbitValue(Varbits.DIARY_FALADOR_MEDIUM) > 0) {
                     return 0.10;
                 }
                 return 0.0;

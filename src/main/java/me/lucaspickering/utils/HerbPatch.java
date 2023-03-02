@@ -32,9 +32,9 @@ public enum HerbPatch {
             case WEISS:
                 return true;
             case HOSIDIUS:
-                // Values are THOUSANDTHS, not hundreths
+                // Values are THOUSANDTHS, not hundredths
                 // https://oldschool.runescape.wiki/w/Kourend_Favour#Hosidius_favour_rewards
-                return client.getVar(Varbits.KOUREND_FAVOR_HOSIDIUS) >= 500;
+                return client.getVarbitValue(Varbits.KOUREND_FAVOR_HOSIDIUS) >= 500;
             default:
                 return false;
         }
