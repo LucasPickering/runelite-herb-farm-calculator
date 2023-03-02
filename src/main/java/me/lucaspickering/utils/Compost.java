@@ -39,7 +39,7 @@ public enum Compost {
      * Get the number of "harvest lives" that a patch starts with when this
      * compost is applied.
      *
-     * @see https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield
+     * @see <a href="https://oldschool.runescape.wiki/w/Farming#Variable_crop_yield">Wiki Reference</a>
      * @return Number of starting lives (default is 3)
      */
     public int getHarvestLives() {

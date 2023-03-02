@@ -30,7 +30,7 @@ public enum Herb {
     private final int level;
     /**
      * The *minimum* "chance to save a life" for the herb, at level 1. Values from
-     * https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit
+     * <a href="https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit">Wiki</a>
      */
     private final double minChanceToSave;
     private final double plantXp;
