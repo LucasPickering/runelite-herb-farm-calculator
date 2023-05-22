@@ -1,0 +1,21 @@
+{
+  "patches": [
+    "Ardougne",
+    "Catherby",
+    "Falador",
+    "Hosidius",
+    "PortPhasmatys"
+  ],
+  "farming_level": 10,
+  "magic_level": 1,
+  "magic_secateurs": false,
+  "farming_cape": false,
+  "bottomless_bucket": false,
+  "resurrect_crops": false,
+  "compost": "None",
+  "anima_plant": null,
+  "falador_diary": null,
+  "hosidius_fifty_favor": false,
+  "kandarin_diary": null,
+  "kourend_diary": null
+}

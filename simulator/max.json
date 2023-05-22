@@ -1,0 +1,25 @@
+{
+    "patches": [
+        "Ardougne",
+        "Catherby",
+        "Falador",
+        "FarmingGuild",
+        "HarmonyIsland",
+        "Hosidius",
+        "PortPhasmatys",
+        "TrollStronghold",
+        "Weiss"
+    ],
+    "farming_level": 99,
+    "magic_level": 91,
+    "magic_secateurs": true,
+    "farming_cape": true,
+    "bottomless_bucket": true,
+    "resurrect_crops": true,
+    "compost": "Ultracompost",
+    "anima_plant": "Attas",
+    "falador_diary": "Elite",
+    "hosidius_fifty_favor": true,
+    "kandarin_diary": "Elite",
+    "kourend_diary": "Elite"
+}

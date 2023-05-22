@@ -1,0 +1,13 @@
+[package]
+edition = "2021"
+name = "herb-simulator"
+version = "0.1.0"
+
+[dependencies]
+clap = {version = "4.3.0", features = ["derive"]}
+comfy-table = {version = "6.1.4", default-features = false}
+derive_more = {version = "0.99.17", default-features = false, features = ["add", "display", "sum"]}
+figment = {version = "0.10.8", features = ["json"]}
+indicatif = "0.17.3"
+rand = "0.8.5"
+serde = {version = "1.0.163", default-features = false, features = ["derive"]}
