@@ -9,6 +9,7 @@ import me.lucaspickering.utils.SurvivalChance;
 import me.lucaspickering.utils.Utils;
 import me.lucaspickering.utils.HerbPatch;
 import me.lucaspickering.utils.HerbPatchBuffs;
+import me.lucaspickering.utils.SortingCriteria;
 import net.runelite.api.Client;
 import net.runelite.api.ItemID;
 import net.runelite.api.Skill;
@@ -52,7 +53,16 @@ public class HerbFarmCalculator {
                 .sorted(Comparator.comparing(patch -> patch.getPatch().getName()))
                 .collect(Collectors.toList());
 
+        // Sort according to criteria specified in the config
+        Comparator<HerbResult> criteria = this.config.criteria().getComparator();
+
+        // Sort in descending/Z->A order if enabled in the config
+        if (this.config.descending()){
+            criteria = criteria.reversed();
+        }
+
         List<HerbResult> herbs = Arrays.stream(Herb.values()).map(herb -> this.calculateHerb(herb, patches))
+                .sorted(criteria)
                 .collect(Collectors.toList());
         return new HerbCalculatorResult(this.getFarmingLevel(), patches, herbs);
     }
