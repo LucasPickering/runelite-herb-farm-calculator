@@ -16,7 +16,8 @@ public enum HerbPatch {
     HOSIDIUS("Hosidius"),
     PORT_PHASMATYS("Port Phasmatys"),
     TROLL_STRONGHOLD("Troll Stronghold"),
-    WEISS("Weiss");
+    WEISS("Weiss"),
+    CIVITAS_ILLA_FORTIS("Civitas illa Fortis");
 
     private final String name;
 
@@ -31,10 +32,14 @@ public enum HerbPatch {
             case TROLL_STRONGHOLD:
             case WEISS:
                 return true;
+            case CIVITAS_ILLA_FORTIS:
+                // Disease free for civitas illa is based on achieving champion rank with the fortis colosseum. 
+                // https://oldschool.runescape.wiki/w/Fortis_Colosseum#Glory
+                // Glory is stored in VarPlayer value 4130.
+                return client.getVarpValue(4130) >= 16000;
             case HOSIDIUS:
-                // Values are THOUSANDTHS, not hundredths
-                // https://oldschool.runescape.wiki/w/Kourend_Favour#Hosidius_favour_rewards
-                return client.getVarbitValue(Varbits.KOUREND_FAVOR_HOSIDIUS) >= 500;
+                // Disease free is now based on the completion of the Kourend easy diary.
+                return client.getVarbitValue(Varbits.DIARY_KOUREND_EASY) == 1;
             default:
                 return false;
         }
