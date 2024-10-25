@@ -20,6 +20,7 @@ public enum Herb {
     KWUARM("Kwuarm", 56, 54.0, 69.0, 78.0, ItemID.KWUARM_SEED, ItemID.GRIMY_KWUARM),
     SNAPDRAGON("Snapdragon", 62, 57.0, 87.5, 98.5, ItemID.SNAPDRAGON_SEED,
             ItemID.GRIMY_SNAPDRAGON),
+    HUASCA("Huasca", 65, 58.0, 86.5, 110.0, ItemID.HUASCA_SEED, ItemID.GRIMY_HUASCA),
     CADANTINE("Cadantine", 67, 60.0, 106.5, 120.0, ItemID.CADANTINE_SEED, ItemID.GRIMY_CADANTINE),
     LANTADYME("Lantadyme", 73, 64.0, 134.5, 151.5, ItemID.LANTADYME_SEED, ItemID.GRIMY_LANTADYME),
     DWARF_WEED("Dwarf Weed", 79, 67.0, 170.5, 192.0, ItemID.DWARF_WEED_SEED,
@@ -30,7 +31,7 @@ public enum Herb {
     private final int level;
     /**
      * The *minimum* "chance to save a life" for the herb, at level 1. Values from
-     * <a href="https://oldschool.runescape.wiki/w/Calculator:Farming/Herbs/Template?action=edit">Wiki</a>
+     * <a href="https://oldschool.runescape.wiki/w/Module:Herb_Farming_calculator">Wiki</a>.
      */
     private final double minChanceToSave;
     private final double plantXp;
