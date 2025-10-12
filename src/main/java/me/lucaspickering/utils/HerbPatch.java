@@ -31,6 +31,8 @@ public enum HerbPatch {
         switch (this) {
             case TROLL_STRONGHOLD:
             case WEISS:
+            case HARMONY:
+                // Harmony patch is disease free by default since 17 September 2025.
                 return true;
             case CIVITAS_ILLA_FORTIS:
                 // Disease free for civitas illa is based on achieving champion rank with the fortis colosseum. 
