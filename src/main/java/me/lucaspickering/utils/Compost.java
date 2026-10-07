@@ -27,7 +27,7 @@ public enum Compost {
     /**
      * Get the GE price of this compost item (if any)
      */
-    public int getPrice(ItemManager itemManager) {
+    public long getPrice(ItemManager itemManager) {
         if (this.item >= 0) {
             return itemManager.getItemPrice(this.item);
         } else {

@@ -254,7 +254,7 @@ public class HerbFarmCalculator {
      * @see <a href="https://oldschool.runescape.wiki/w/Resurrect_Crops">Wiki Reference</a>
      * @return Cost of all runes to cast Resurrect Crops
      */
-    private int getResurrectRuneCost() {
+    private long getResurrectRuneCost() {
         // 8 souls, 12 nats, 8 bloods, 25 earths
         return this.itemManager.getItemPrice(ItemID.SOUL_RUNE) * 8 +
                 this.itemManager.getItemPrice(ItemID.NATURE_RUNE) * 12 +
